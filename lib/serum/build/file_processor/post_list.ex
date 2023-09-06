@@ -20,9 +20,9 @@ defmodule Serum.Build.FileProcessor.PostList do
     tag_groups = group_posts_by_tag(compact_posts)
 
     [{nil, compact_posts} | tag_groups]
-    |> Task.async_stream(fn {tag, posts} ->
-      PostList.generate(tag, posts, proj)
-    end)
+    |> Task.async_stream(fn {tag, posts} -> PostList.generate(tag, posts, proj) end,
+      timeout: :infinity
+    )
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do

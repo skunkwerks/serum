@@ -1,13 +1,13 @@
 defmodule Serum.Mixfile do
   use Mix.Project
 
-  @serum_version "1.5.1"
+  @serum_version "1.6.0"
 
   def project do
     [
-      app: :serum,
+      app: :serum_md,
       version: @serum_version,
-      elixir: ">= 1.13.0",
+      elixir: "~> 1.13",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: ExCoveralls],
@@ -34,14 +34,14 @@ defmodule Serum.Mixfile do
 
   defp deps do
     [
-      {:earmark, "~> 1.4"},
+      {:md, "~> 0.9"},
       {:file_system, "0.2.10"},
       {:microscope, ">= 1.4.0"},
       {:timex, "~> 3.7"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14", only: [:test], runtime: false},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:floki, "0.33.1"},
+      {:floki, "~> 0.33"},
       {:ex_doc, "~> 0.28", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:mox, "~> 1.0", only: :test}
@@ -50,13 +50,13 @@ defmodule Serum.Mixfile do
 
   defp package do
     [
-      name: "serum",
-      description: "Yet another static website generator written in Elixir",
-      maintainers: ["Eunbin Jeong"],
+      name: "serum_md",
+      description:
+        "Yet another static website generator written in Elixir with MD parser (forked from serum)",
+      maintainers: ["Aleksei Matiushkin"],
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/Dalgona/Serum",
-        "Website" => "http://dalgona.github.io/Serum"
+        "GitHub" => "https://github.com/am-kantox/Serum"
       }
     ]
   end
@@ -64,8 +64,7 @@ defmodule Serum.Mixfile do
   defp docs do
     [
       main: "Serum",
-      source_url: "https://github.com/Dalgona/Serum",
-      homepage_url: "https://dalgona.github.io/Serum",
+      source_url: "https://github.com/am-kantox/Serum",
       groups_for_modules: [
         "Entry Points": [
           Serum,
@@ -87,6 +86,7 @@ defmodule Serum.Mixfile do
         "Built-in Plugins": [
           Serum.Plugins.LiveReloader,
           Serum.Plugins.PreviewGenerator,
+          Serum.Plugins.RssGenerator,
           Serum.Plugins.SitemapGenerator,
           Serum.Plugins.TableOfContents
         ],

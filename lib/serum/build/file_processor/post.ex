@@ -18,7 +18,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
     result =
       files
-      |> Task.async_stream(&process_post(&1, proj))
+      |> Task.async_stream(&process_post(&1, proj), timeout: :infinity)
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:file_processor)
 
@@ -33,7 +33,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
   @spec process_post(Serum.File.t(), Project.t()) :: Result.t(Post.t())
   defp process_post(file, proj) do
-    import Serum.HeaderParser
+    import Serum.{HeaderParser, Build.FileNameHandler}
 
     opts = [
       title: :string,
@@ -46,13 +46,20 @@ defmodule Serum.Build.FileProcessor.Post do
     required = [:title, :date]
 
     with {:ok, %{in_data: data} = file2} <- Plugin.processing_post(file),
-         {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
-      header = %{
-        header
-        | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
-      }
+         {:ok, {header, extras, rest}} <- parse_header(data, opts, required),
+         date <- header[:date] || parse_date_from_filename(file.src),
+         {html, %{} = meta} = Markdown.to_html(rest, proj) do
+      title = Map.get(meta, :title, "☆ ☆ ☆")
 
-      html = Markdown.to_html(rest, proj)
+      tags =
+        file.src |> String.split("/") |> Enum.slice(1..-2) |> Kernel.++(Map.get(meta, :tags, []))
+
+      header =
+        header
+        |> Map.put_new(:date, date)
+        |> Map.put_new(:title, title)
+        |> Map.update(:tags, tags, &Enum.uniq(tags ++ &1))
+
       post = Post.new(file2.src, {header, extras}, html, proj)
 
       Plugin.processed_post(post)

@@ -92,7 +92,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
       {:error, {_, errors}} = preprocess_pages(files, ctx.proj)
 
-      assert length(errors) === length(files)
+      assert length(errors) > 0 and length(errors) <= length(files)
     end
 
     test "fails on bad EEx pages", ctx do

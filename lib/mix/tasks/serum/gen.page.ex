@@ -86,6 +86,9 @@ defmodule Mix.Tasks.Serum.Gen.Page do
 
   defp check_type!(path) do
     cond do
+      not String.contains?(path, ".") ->
+        :md
+
       String.ends_with?(path, ".md") ->
         :md
 

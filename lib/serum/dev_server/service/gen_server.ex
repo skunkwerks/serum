@@ -24,7 +24,7 @@ defmodule Serum.DevServer.Service.GenServer do
   @doc "Starts the GenServer process."
   @spec start_link(start_arg()) :: {:ok, pid()} | {:error, atom()}
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    GenServer.start_link(__MODULE__, args, name: __MODULE__, timeout: :infinity)
   end
 
   @impl Service

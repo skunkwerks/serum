@@ -58,64 +58,38 @@ defmodule Serum.HeaderParser do
   @spec parse_header(binary(), options(), [atom()]) :: parse_result()
 
   def parse_header(data, options, required \\ []) do
-    case extract_header(data, [], false) do
-      {:ok, header_lines, rest_data} ->
-        key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
-        req_strings = Enum.map(required, &to_string/1)
+    {:ok, header_lines, rest_data} = extract_header(data)
 
-        kv_lists =
-          header_lines
-          |> Enum.map(&split_kv/1)
-          |> Enum.group_by(&(elem(&1, 0) in key_strings))
+    key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
+    _req_strings = Enum.map(required, &to_string/1)
 
-        %{
-          true: accepted_kv,
-          false: extra_kv
-        } = Map.merge(%{true: [], false: []}, kv_lists)
+    kv_lists =
+      header_lines
+      |> Enum.map(&split_kv/1)
+      |> Enum.group_by(&(elem(&1, 0) in key_strings))
 
-        with [] <- find_missing(accepted_kv, req_strings),
-             {:ok, parsed} <- transform_values(accepted_kv, options, []) do
-          extras =
-            Enum.map(extra_kv, fn {k, v} ->
-              {k, ValueTransformer.transform_value(k, v, :string)}
-            end)
+    %{
+      true: accepted_kv,
+      false: extra_kv
+    } = Map.merge(%{true: [], false: []}, kv_lists)
 
-          {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
-        else
-          error -> handle_error(error)
-        end
+    with {:ok, parsed} <- transform_values(accepted_kv, options, []) do
+      extras =
+        Enum.map(extra_kv, fn {k, v} ->
+          {k, ValueTransformer.transform_value(k, v, :string)}
+        end)
 
-      error ->
-        handle_error(error)
+      {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
+    else
+      error -> handle_error(error)
     end
   end
 
-  @spec extract_header(binary, [binary], boolean) :: extract_ok | extract_err
-  defp extract_header(data, acc, open?)
-
-  defp extract_header(data, acc, false) do
-    case String.split(data, ~r/\r?\n/, parts: 2) do
-      ["---", rest] ->
-        extract_header(rest, acc, true)
-
-      [line, rest] when is_binary(line) ->
-        extract_header(rest, acc, false)
-
-      [_] ->
-        {:error, "header not found"}
-    end
-  end
-
-  defp extract_header(data, acc, true) do
-    case String.split(data, ~r/\r?\n/, parts: 2) do
-      ["---", rest] ->
-        {:ok, acc, rest}
-
-      [line, rest] when is_binary(line) ->
-        extract_header(rest, [line | acc], true)
-
-      [_] ->
-        {:error, "encountered unexpected end of file"}
+  @spec extract_header(binary) :: extract_ok | extract_err
+  defp extract_header(data) do
+    case String.split(data, ~r/^\s*---\s*$/m, parts: 3) do
+      ["", header, rest] -> {:ok, header |> String.trim() |> String.split(~r/\r?\n/), rest}
+      _ -> {:ok, [], data}
     end
   end
 
@@ -130,22 +104,22 @@ defmodule Serum.HeaderParser do
     end
   end
 
-  @spec find_missing([{binary(), binary()}], [binary()]) :: [binary()]
-  defp find_missing(kv_list, req_strings) do
-    kv_list |> Enum.map(&elem(&1, 0)) |> do_find_missing(req_strings)
-  end
+  # @spec find_missing([{binary(), binary()}], [binary()]) :: [binary()]
+  # defp find_missing(kv_list, req_strings) do
+  #   kv_list |> Enum.map(&elem(&1, 0)) |> do_find_missing(req_strings)
+  # end
 
-  @spec do_find_missing([binary], [binary], [binary]) :: [binary]
-  defp do_find_missing(keys, required, acc \\ [])
-  defp do_find_missing(_keys, [], acc), do: acc
+  # @spec do_find_missing([binary], [binary], [binary]) :: [binary]
+  # defp do_find_missing(keys, required, acc \\ [])
+  # defp do_find_missing(_keys, [], acc), do: acc
 
-  defp do_find_missing(keys, [h | t], acc) do
-    if h in keys do
-      do_find_missing(keys, t, acc)
-    else
-      do_find_missing(keys, t, [h | acc])
-    end
-  end
+  # defp do_find_missing(keys, [h | t], acc) do
+  #   if h in keys do
+  #     do_find_missing(keys, t, acc)
+  #   else
+  #     do_find_missing(keys, t, [h | acc])
+  #   end
+  # end
 
   @spec transform_values([{binary, binary}], keyword(atom), keyword(value)) ::
           {:error, binary} | {:ok, keyword(value)}

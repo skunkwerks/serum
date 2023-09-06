@@ -58,7 +58,7 @@ defmodule Serum.Post do
   @spec new(binary(), {map(), map()}, binary(), Project.t()) :: t()
   def new(path, {header, extras}, html, %Project{} = proj) do
     tags = Tag.batch_create(header[:tags] || [], proj)
-    datetime = header[:date]
+    datetime = header[:date] || Date.utc_today()
     date_str = Timex.format!(datetime, proj.date_format)
     raw_date = to_erl_datetime(datetime)
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)

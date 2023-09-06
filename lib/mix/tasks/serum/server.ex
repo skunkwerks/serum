@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Serum.Server do
     Mix.Task.run("compile", [])
 
     options = CLIHelper.parse_options(args, @options)
-    {:ok, _} = Application.ensure_all_started(:serum)
+    {:ok, _} = Application.ensure_all_started(:serum_md)
 
     Mix.shell().info(CLIHelper.version_string())
 

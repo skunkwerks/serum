@@ -64,11 +64,11 @@ defmodule Serum.New do
       end
 
     def get_serum_dep do
-      unquote(~s({:serum, "~> #{ver.major}.#{ver.minor}#{pre_release}"}))
+      unquote(~s({:serum_md, "~> #{ver.major}.#{ver.minor}#{pre_release}"}))
     end
   else
     def get_serum_dep do
-      ~s({:serum, path: "#{Path.expand(Path.join(File.cwd!(), ".."))}"})
+      ~s({:serum_md, path: "#{Path.expand(Path.join(File.cwd!(), ".."))}"})
     end
   end
 

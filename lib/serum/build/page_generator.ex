@@ -18,7 +18,7 @@ defmodule Serum.Build.PageGenerator do
     template = TS.get("base", :template)
 
     fragments
-    |> Task.async_stream(&render(&1, template))
+    |> Task.async_stream(&render(&1, template), timeout: :infinity)
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:page_generator)
   end

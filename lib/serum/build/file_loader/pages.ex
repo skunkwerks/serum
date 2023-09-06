@@ -16,9 +16,11 @@ defmodule Serum.Build.FileLoader.Pages do
     pages_dir = get_subdir(src, "pages")
 
     if File.exists?(pages_dir) do
-      [pages_dir, "**", "*.{md,html,html.eex}"]
+      [pages_dir, "**", "*"]
       |> Path.join()
       |> Path.wildcard()
+      |> Enum.reject(&File.dir?/1)
+      |> Enum.sort(Serum.Build.FileNameHandler)
       |> Plugin.reading_pages()
       |> case do
         {:ok, files} -> read_files(files)

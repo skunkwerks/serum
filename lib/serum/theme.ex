@@ -24,7 +24,7 @@ defmodule Serum.Theme do
       # mix.exs
       defp deps do
       [
-        {:serum, "~> 1.0"},
+        {:serum_md, "~> 1.0"},
         # ...
 
         # If the theme is available on Hex.pm:

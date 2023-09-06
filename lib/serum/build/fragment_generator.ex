@@ -16,7 +16,7 @@ defmodule Serum.Build.FragmentGenerator do
     |> Map.take([:pages, :posts, :lists])
     |> Enum.map(&elem(&1, 1))
     |> List.flatten()
-    |> Task.async_stream(&task_fun(&1))
+    |> Task.async_stream(&task_fun/1, timeout: :infinity)
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:fragment_generator)
   end

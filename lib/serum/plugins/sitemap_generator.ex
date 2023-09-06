@@ -59,7 +59,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   end
 
   sitemap_path =
-    :serum
+    :serum_md
     |> :code.priv_dir()
     |> Path.join("build_resources")
     |> Path.join("sitemap.xml.eex")

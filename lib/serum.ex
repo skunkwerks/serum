@@ -23,7 +23,7 @@ defmodule Serum do
   alias Serum.Theme
 
   @doc """
-  Starts the `:serum` application.
+  Starts the `:serum_md` application.
 
   This starts a supervisor process which manages some children maintaining
   states or data required for execution of Serum.

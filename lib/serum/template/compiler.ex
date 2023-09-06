@@ -39,7 +39,7 @@ defmodule Serum.Template.Compiler do
 
     result =
       files
-      |> Task.async_stream(&compile_file(&1, options))
+      |> Task.async_stream(&compile_file(&1, options), timeout: :infinity)
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:template_loader)
 

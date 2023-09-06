@@ -17,7 +17,7 @@ defmodule Serum.Build.FileProcessor.Page do
 
     result =
       files
-      |> Task.async_stream(&preprocess_page(&1, proj))
+      |> Task.async_stream(&preprocess_page(&1, proj), timeout: :infinity)
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:file_processor)
 
@@ -44,11 +44,11 @@ defmodule Serum.Build.FileProcessor.Page do
       template: :string
     ]
 
-    required = [:title]
+    required = []
 
     with {:ok, %{in_data: data} = file2} <- Plugin.processing_page(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
-      header = Map.put(header, :label, header[:label] || header.title)
+      header = Map.put(header, :label, header[:label] || header[:title])
       page = Page.new(file2.src, {header, extras}, rest, proj)
 
       {:ok, page}
@@ -81,8 +81,26 @@ defmodule Serum.Build.FileProcessor.Page do
   @spec do_process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp do_process_page(page, proj)
 
-  defp do_process_page(%Page{type: ".md"} = page, proj) do
-    {:ok, %Page{page | data: Markdown.to_html(page.data, proj)}}
+  defp do_process_page(%Page{type: type} = page, proj) when type in [".md", ""] do
+    {data, meta} = Markdown.to_html(page.data, proj)
+
+    tags =
+      page.file
+      |> String.split("/")
+      |> Enum.slice(1..-2)
+      |> Kernel.++([Map.get(page.extras, "tags") | Map.get(meta, :tags, [])])
+      |> Enum.uniq()
+      |> Enum.join(", ")
+
+    title = page.title || Map.get(meta, :title, "★ ★ ★")
+    label = page.label || title
+
+    extras =
+      page.extras
+      |> Map.put_new("title", title)
+      |> Map.put("tags", tags)
+
+    {:ok, %Page{page | data: data, extras: extras, title: title, label: label}}
   end
 
   defp do_process_page(%Page{type: ".html"} = page, _proj) do

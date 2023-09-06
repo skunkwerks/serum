@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Serum.Build do
 
     options = CLIHelper.parse_options(args, @options)
     dest = options[:output] || "site"
-    {:ok, _} = Application.ensure_all_started(:serum)
+    {:ok, _} = Application.ensure_all_started(:serum_md)
 
     Mix.shell().info(CLIHelper.version_string())
 

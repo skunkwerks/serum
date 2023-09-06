@@ -16,10 +16,11 @@ defmodule Serum.Build.FileLoader.Posts do
     posts_dir = get_subdir(src, posts_source)
 
     if File.exists?(posts_dir) do
-      posts_dir
-      |> Path.join("*.md")
+      [posts_dir, "**", "*"]
+      |> Path.join()
       |> Path.wildcard()
-      |> Enum.sort()
+      |> Enum.reject(&File.dir?/1)
+      |> Enum.sort(Serum.Build.FileNameHandler)
       |> Plugin.reading_posts()
       |> case do
         {:ok, files} -> read_files(files)

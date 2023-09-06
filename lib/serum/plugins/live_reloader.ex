@@ -42,7 +42,7 @@ defmodule Serum.Plugins.LiveReloader do
   def implements, do: [rendered_page: 2]
 
   script_snippet =
-    :serum
+    :serum_md
     |> :code.priv_dir()
     |> IO.iodata_to_binary()
     |> Path.join("build_resources/live_reloader.html")

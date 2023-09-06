@@ -87,6 +87,9 @@ defmodule Serum.Page do
         |> Path.extname()
         |> Kernel.<>(".eex")
 
+      "" ->
+        ""
+
       ext ->
         ext
     end

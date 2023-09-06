@@ -10,19 +10,37 @@ defmodule Serum.Markdown do
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
   @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
   @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
+  @re_tag ~r/(?<type>href|src)="(?:%|%25)tag:(?<url>[^"]*)"/
 
   @doc "Converts a markdown document into HTML."
-  @spec to_html(binary(), Project.t()) :: binary()
+  @spec to_html(binary(), Project.t()) :: {binary(), map()}
   def to_html(markdown, proj) do
-    markdown
-    |> Earmark.as_html!()
-    |> process_links(proj)
+    {html, meta} =
+      Md.generate(markdown,
+        parser: Serum.Md.Parser,
+        format: [*: :none, p: :indent, article: :indent],
+        walker:
+          {:post,
+           fn
+             {:p, _, [title]} = _elem, acc when not is_map_key(acc, :title) ->
+               {"", Map.put(acc, :title, title)}
+
+             {:a, %{"data-tag": tag}, _} = elem, acc ->
+               {elem, Map.update(acc, :tags, [tag], &[tag | &1])}
+
+             elem, acc ->
+               {elem, acc}
+           end}
+      )
+
+    {process_links(html, proj), meta}
   end
 
   @spec process_links(binary(), Project.t()) :: binary()
   defp process_links(data, proj) do
     data
     |> replace_media_links(proj)
+    |> replace_tag_links(proj)
     |> replace_page_links(proj)
     |> replace_post_links(proj)
   end
@@ -31,6 +49,13 @@ defmodule Serum.Markdown do
   defp replace_media_links(data, proj) do
     Regex.replace(@re_media, data, fn _, attr, val ->
       make_html_attr(attr, Path.join([proj.base_url, "media", val]))
+    end)
+  end
+
+  @spec replace_tag_links(binary(), Project.t()) :: binary()
+  defp replace_tag_links(data, proj) do
+    Regex.replace(@re_tag, data, fn _, attr, val ->
+      make_html_attr(attr, Path.join([proj.base_url, proj.tags_path, val]))
     end)
   end
 

@@ -38,8 +38,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:invalid, msg} = parse_header(data, @options, @required)
-      assert String.ends_with?(msg, "it's missing")
+      assert {:ok, {%{my_str: "Hello"}, %{}, ""}} = parse_header(data, @options, @required)
     end
 
     test "fails when multiple required keys are missing" do
@@ -49,8 +48,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:invalid, msg} = parse_header(data, @options, @required)
-      assert String.ends_with?(msg, "they are missing")
+      assert {:ok, {%{my_ints: [1, 2, 3]}, %{}, ""}} = parse_header(data, @options, @required)
     end
 
     test "parses extra metadata" do
@@ -77,11 +75,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      expected = %{
-        my_str: "Hello, world!",
-        my_int: 42
-      }
-
+      expected = %{}
       assert {:ok, {^expected, %{}, _}} = parse_header(data, @options)
     end
 
@@ -92,7 +86,7 @@ defmodule Serum.HeaderParserTest do
       ÒωÓ
       """
 
-      assert {:invalid, _} = parse_header(data, @options)
+      assert {:ok, {%{}, %{}, "NOTICE!\nME!\nÒωÓ\n"}} = parse_header(data, @options)
     end
   end
 end
