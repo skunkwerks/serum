@@ -47,19 +47,21 @@ defmodule Serum.Build.FileProcessor.PostTest do
                title: "Test Post",
                date: "2019-01-01",
                raw_date: {{2019, 1, 1}, {0, 0, 0}},
-               tags: [
-                 %Serum.Tag{name: "Elixir", list_url: "/test-site/tags/Elixir"},
-                 %Serum.Tag{name: "Proyectos", list_url: "/test-site/tags/Proyectos"},
-                 %Serum.Tag{name: "Serum", list_url: "/test-site/tags/Serum"},
-                 %Serum.Tag{name: "aleksei", list_url: "/test-site/tags/aleksei"},
-                 %Serum.Tag{name: "home", list_url: "/test-site/tags/home"},
-                 %Serum.Tag{name: "posts", list_url: "/test-site/tags/posts"},
-                 %Serum.Tag{name: "tag3", list_url: "/test-site/tags/tag3"},
-                 %Serum.Tag{name: "tag4", list_url: "/test-site/tags/tag4"},
-                 %Serum.Tag{name: "test_fixtures", list_url: "/test-site/tags/test_fixtures"}
-               ],
+               tags: tags,
                output: "/path/to/dest/posts/good-alternative-date.html"
              } = post
+
+      assert Enum.sort(tags) == [
+               %Serum.Tag{name: "Elixir", list_url: "/test-site/tags/Elixir"},
+               %Serum.Tag{name: "Proyectos", list_url: "/test-site/tags/Proyectos"},
+               %Serum.Tag{name: "Serum", list_url: "/test-site/tags/Serum"},
+               %Serum.Tag{name: "aleksei", list_url: "/test-site/tags/aleksei"},
+               %Serum.Tag{name: "home", list_url: "/test-site/tags/home"},
+               %Serum.Tag{name: "posts", list_url: "/test-site/tags/posts"},
+               %Serum.Tag{name: "tag3", list_url: "/test-site/tags/tag3"},
+               %Serum.Tag{name: "tag4", list_url: "/test-site/tags/tag4"},
+               %Serum.Tag{name: "test_fixtures", list_url: "/test-site/tags/test_fixtures"}
+             ]
 
       assert_compact(compact_post)
     end
