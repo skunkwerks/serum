@@ -87,7 +87,7 @@ defmodule Serum.Build.FileProcessor.Page do
     tags =
       page.file
       |> String.split("/")
-      |> Enum.slice(1..-2)
+      |> Enum.slice(1..-2//1)
       |> Kernel.++([Map.get(page.extras, "tags") | Map.get(meta, :tags, [])])
       |> Enum.uniq()
       |> Enum.join(", ")

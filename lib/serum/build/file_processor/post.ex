@@ -52,7 +52,10 @@ defmodule Serum.Build.FileProcessor.Post do
       title = Map.get(meta, :title, "☆ ☆ ☆")
 
       tags =
-        file.src |> String.split("/") |> Enum.slice(1..-2) |> Kernel.++(Map.get(meta, :tags, []))
+        file.src
+        |> String.split("/")
+        |> Enum.slice(1..-2//1)
+        |> Kernel.++(Map.get(meta, :tags, []))
 
       header =
         header

@@ -1,7 +1,9 @@
 <!doctype html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8"/>
+    <meta name="title" content="<%= @page.title %> - <%= @site.name %>"/>
+    <meta name="description" content="<%= Enum.join([@site.name, @page.title, Enum.join(@page.tags, ", ")], " — ") %>"/>
     <title><%= @page.title %> - <%= @site.name %></title>
   </head>
   <body>
