@@ -48,7 +48,7 @@ defmodule Serum.Build.FileProcessor.Post do
     with {:ok, %{in_data: data} = file2} <- Plugin.processing_post(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required),
          date <- header[:date] || parse_date_from_filename(file.src),
-         {html, %{} = meta} = Markdown.to_html(rest, proj) do
+         {html, %{} = meta} <- Markdown.to_html(rest, proj) do
       title = Map.get(meta, :title, "☆ ☆ ☆")
 
       tags =

@@ -73,15 +73,17 @@ defmodule Serum.HeaderParser do
       false: extra_kv
     } = Map.merge(%{true: [], false: []}, kv_lists)
 
-    with {:ok, parsed} <- transform_values(accepted_kv, options, []) do
-      extras =
-        Enum.map(extra_kv, fn {k, v} ->
-          {k, ValueTransformer.transform_value(k, v, :string)}
-        end)
+    case transform_values(accepted_kv, options, []) do
+      {:ok, parsed} ->
+        extras =
+          Enum.map(extra_kv, fn {k, v} ->
+            {k, ValueTransformer.transform_value(k, v, :string)}
+          end)
 
-      {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
-    else
-      error -> handle_error(error)
+        {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
+
+      error ->
+        handle_error(error)
     end
   end
 

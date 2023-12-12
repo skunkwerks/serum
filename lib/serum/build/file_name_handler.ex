@@ -26,35 +26,54 @@ defmodule Serum.Build.FileNameHandler do
     filename
     |> Path.split()
     |> List.last()
-    |> case do
-      <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(1)>> ->
-        parse_date_from_ymd(year, "0" <> month, "0" <> day)
-
-      <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(2)>> ->
-        parse_date_from_ymd(year, "0" <> month, day)
-
-      <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(1)>> ->
-        parse_date_from_ymd(year, month, "0" <> day)
-
-      <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(2)>> ->
-        parse_date_from_ymd(year, month, day)
-
-      <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(1), ?-, _::binary>> ->
-        parse_date_from_ymd(year, "0" <> month, "0" <> day)
-
-      <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(2), ?-, _::binary>> ->
-        parse_date_from_ymd(year, "0" <> month, day)
-
-      <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(1), ?-, _::binary>> ->
-        parse_date_from_ymd(year, month, "0" <> day)
-
-      <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(2), _::binary>> ->
-        parse_date_from_ymd(year, month, day)
-
-      _ ->
-        nil
-    end
+    |> do_parse_date_from_filename()
   end
+
+  @spec do_parse_date_from_filename(String.t()) :: Date.t() | nil
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(1)>>
+       ),
+       do: parse_date_from_ymd(year, "0" <> month, "0" <> day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(2)>>
+       ),
+       do: parse_date_from_ymd(year, "0" <> month, day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(1)>>
+       ),
+       do: parse_date_from_ymd(year, month, "0" <> day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(2)>>
+       ),
+       do: parse_date_from_ymd(year, month, day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(1), ?-,
+           _::binary>>
+       ),
+       do: parse_date_from_ymd(year, "0" <> month, "0" <> day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(1), ?-, day::binary-size(2), ?-,
+           _::binary>>
+       ),
+       do: parse_date_from_ymd(year, "0" <> month, day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(1), ?-,
+           _::binary>>
+       ),
+       do: parse_date_from_ymd(year, month, "0" <> day)
+
+  defp do_parse_date_from_filename(
+         <<year::binary-size(4), ?-, month::binary-size(2), ?-, day::binary-size(2), _::binary>>
+       ),
+       do: parse_date_from_ymd(year, month, day)
+
+  defp do_parse_date_from_filename(_), do: nil
 
   @spec parse_date_from_ymd(binary(), binary(), binary()) :: Date.t()
   defp parse_date_from_ymd(year, month, day) do

@@ -73,5 +73,8 @@ defmodule Serum.Template.Compiler do
 
     e in [SyntaxError, TokenMissingError] ->
       {:ct_error, e.description, e.line}
+
+    e in [MismatchedDelimiterError, Enum.OutOfBoundsError] ->
+      {:ct_error, e.description, e.line}
   end
 end
