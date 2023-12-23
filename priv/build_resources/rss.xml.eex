@@ -5,7 +5,7 @@
   <title><%= "Alek�ei Matiu�hkin" %></title>
   <link><%= Path.join(Map.fetch!(bindings, :server_root), "/rss.xml") %></link>
   <description><%= Map.fetch!(bindings, :description) %></description>
-  <lastBuildDate><%= transformer.() %></lastBuildDate>
+  <lastBuildDate><%= transformer.(DateTime.utc_now()) %></lastBuildDate>
   <atom:link href="<%= Path.join(Map.fetch!(bindings, :server_root), "/rss.xml") %>" rel="self" type="application/rss+xml" />
   <%= for post <- posts do %>
     <item>
