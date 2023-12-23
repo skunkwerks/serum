@@ -5,14 +5,17 @@
   <title><%= "Alek�ei Matiu�hkin" %></title>
   <link><%= Path.join(Map.fetch!(bindings, :server_root), "/rss.xml") %></link>
   <description><%= Map.fetch!(bindings, :description) %></description>
-  <lastBuildDate><%= Timex.now() |> Timex.format!("%d %b %Y %T %z", :strftime) %></lastBuildDate>
+  <lastBuildDate><%= transformer.() %></lastBuildDate>
   <atom:link href="<%= Path.join(Map.fetch!(bindings, :server_root), "/rss.xml") %>" rel="self" type="application/rss+xml" />
-  <%= for post <- posts do %><item>
+  <%= for post <- posts do %>
+    <item>
       <link><%= Path.join(Map.fetch!(bindings, :server_root), post.url) %></link>
       <guid><%= Path.join(Map.fetch!(bindings, :server_root), post.url) %></guid>
       <title><%= String.replace(post.title, "&", "and") %></title>
       <description><%= String.replace(post.preview, "&", "and") %></description>
     </item>
+  <% end %>
+  <%= for _page <- pages do %><item>
   <% end %>
 </channel>
 </rss>

@@ -1,7 +1,7 @@
 defmodule Serum.Mixfile do
   use Mix.Project
 
-  @serum_version "1.6.2"
+  @serum_version "1.6.3"
 
   def project do
     [
@@ -35,8 +35,8 @@ defmodule Serum.Mixfile do
   defp deps do
     [
       {:md, "~> 0.9"},
-      {:file_system, "0.2.10"},
-      {:microscope, ">= 1.4.0"},
+      {:file_system, "~> 0.2 or ~> 1.0"},
+      {:microscope, "~> 1.4"},
       {:timex, "~> 3.7"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14", only: [:test], runtime: false},

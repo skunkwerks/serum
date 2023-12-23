@@ -79,14 +79,8 @@ defmodule Serum.Plugins.RssGenerator do
     }
   end
 
-  defp to_rfc822_format(_now) do
-    # reference to https://www.w3.org/TR/NOTE-datetime
-    # 10 Mar 21 22:43:37 UTC
-    # NaiveDateTime.from_erl!()
-    # Timex.now()
-    # |> Timex.format!("%d %b %y %T Z", :strftime)
-    # "10 Mar 21 22:43:37 UTC"
-  end
+  defp to_rfc822_format(now),
+    do: Calendar.strftime(now, "%d %b %Y %H:%M:%S %z")
 
   defp bindings do
     :site
