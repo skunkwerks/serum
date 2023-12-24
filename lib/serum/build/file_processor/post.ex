@@ -17,7 +17,8 @@ defmodule Serum.Build.FileProcessor.Post do
     put_msg(:info, "Processing post files...")
 
     result =
-      files
+      [nil | files]
+      |> Enum.chunk_every(3, 1, [nil])
       |> Task.async_stream(&process_post(&1, proj), timeout: :infinity)
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:file_processor)
@@ -31,8 +32,8 @@ defmodule Serum.Build.FileProcessor.Post do
     end
   end
 
-  @spec process_post(Serum.File.t(), Project.t()) :: Result.t(Post.t())
-  defp process_post(file, proj) do
+  @spec process_post([nil | Serum.File.t()], Project.t()) :: Result.t(Post.t())
+  defp process_post([prev, file, next], proj) do
     import Serum.{HeaderParser, Build.FileNameHandler}
 
     opts = [
@@ -47,8 +48,9 @@ defmodule Serum.Build.FileProcessor.Post do
 
     with {:ok, %{in_data: data} = file2} <- Plugin.processing_post(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required),
+         extras = extras |> Map.put_new(:previous, prev) |> Map.put_new(:next, next),
          date <- header[:date] || parse_date_from_filename(file.src),
-         {html, %{} = meta} <- Markdown.to_html(rest, proj) do
+         {html, %{} = meta} <- Markdown.to_html(rest, proj, previous: prev, next: next) do
       title = Map.get(meta, :title, "☆ ☆ ☆")
 
       tags =

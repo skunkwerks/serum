@@ -12,17 +12,20 @@ defmodule Serum.Markdown do
   @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
   @re_tag ~r/(?<type>href|src)="(?:%|%25)tag:(?<url>[^"]*)"/
 
+  @add_prev_next_links Application.compile_env(:serum_md, :prev_next, :arrows)
+
   @doc "Converts a markdown document into HTML."
-  @spec to_html(binary(), Project.t()) :: {binary(), map()}
-  def to_html(markdown, proj) do
+  @spec to_html(binary(), Project.t(), keyword()) :: {binary(), map()}
+  def to_html(markdown, proj, options \\ []) do
     {html, meta} =
-      Md.generate(markdown,
+      Md.generate(markdown <> prev_next_links({@add_prev_next_links, options, proj}),
         parser: Serum.Md.Parser,
-        format: [*: :none, p: :indent, article: :indent],
+        format: :none,
         walker:
           {:post,
            fn
-             {:p, _, [title]} = _elem, acc when not is_map_key(acc, :title) ->
+             {:p, _, [title]} = _elem, acc
+             when not is_map_key(acc, :title) and is_binary(title) ->
                {"", Map.put(acc, :title, title)}
 
              {:a, %{"data-tag": tag}, _} = elem, acc ->
@@ -33,8 +36,41 @@ defmodule Serum.Markdown do
            end}
       )
 
-    {process_links(html, proj), meta}
+    {process_links(html, proj), Map.put(meta, :prev_next, options)}
   end
+
+  @spec prev_next_links(
+          {:arrows, [{:previous, String.t()} | {:next, String.t()}]}
+          | (nil | String.t(), nil | String.t() -> String.t())
+        ) :: String.t()
+  defp prev_next_links({:arrows, prev_next, proj}) do
+    prev_next =
+      for {k, v} <- prev_next, do: {k, safe_dest(v, proj.pretty_urls)}
+
+    {opening, closing} = {"\n\n---\n⇒{{class:prev_next}}", "⇐\n"}
+    arrows = [previous: "⮈", next: "⮊"]
+    splitter = "  ￤  "
+
+    wrapper =
+      &if(is_nil(prev_next[&1]), do: arrows[&1], else: "[#{arrows[&1]}](#{prev_next[&1]})")
+
+    Enum.join([opening, wrapper.(:previous), splitter, wrapper.(:next), closing])
+  end
+
+  defp prev_next_links(fun, prev_next) when is_function(fun, 2),
+    do: fun.(prev_next[:previous], prev_next[:next])
+
+  defp safe_dest(nil, _), do: nil
+  defp safe_dest(s, _) when is_binary(s), do: s
+  defp safe_dest(%Serum.File{dest: dest}, _) when is_binary(dest), do: dest
+
+  defp safe_dest(%Serum.File{src: src}, false) when is_binary(src),
+    do: src |> String.split("/") |> List.last()
+
+  defp safe_dest(%Serum.File{src: src} = file, _) when is_binary(src),
+    do: safe_dest(file, false) <> ".html"
+
+  defp safe_dest(_, _), do: nil
 
   @spec process_links(binary(), Project.t()) :: binary()
   defp process_links(data, proj) do

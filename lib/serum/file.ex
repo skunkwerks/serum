@@ -74,4 +74,9 @@ defmodule Serum.File do
 
   @spec print_write(binary()) :: :ok
   defp print_write(dest), do: put_msg(:gen, dest)
+
+  defimpl String.Chars, for: Serum.File do
+    @moduledoc false
+    def to_string(%Serum.File{src: src}), do: src
+  end
 end
