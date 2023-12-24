@@ -64,11 +64,11 @@ defmodule Serum.Markdown do
   defp safe_dest(s, _) when is_binary(s), do: s
   defp safe_dest(%Serum.File{dest: dest}, _) when is_binary(dest), do: dest
 
-  defp safe_dest(%Serum.File{src: src}, false) when is_binary(src),
-    do: src |> String.split("/") |> List.last()
+  defp safe_dest(%Serum.File{src: src} = file, false) when is_binary(src),
+    do: safe_dest(file, true) <> ".html"
 
-  defp safe_dest(%Serum.File{src: src} = file, _) when is_binary(src),
-    do: safe_dest(file, false) <> ".html"
+  defp safe_dest(%Serum.File{src: src}, _) when is_binary(src),
+    do: src |> String.split("/") |> List.last()
 
   defp safe_dest(_, _), do: nil
 
