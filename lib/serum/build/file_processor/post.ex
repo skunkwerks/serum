@@ -48,10 +48,11 @@ defmodule Serum.Build.FileProcessor.Post do
 
     with {:ok, %{in_data: data} = file2} <- Plugin.processing_post(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required),
-         extras = extras |> Map.put_new(:previous, prev) |> Map.put_new(:next, next),
+         extras = Map.put(extras, :supplemental, prev: prev, next: next),
          date <- header[:date] || parse_date_from_filename(file.src),
-         {html, %{} = meta} <- Markdown.to_html(rest, proj, previous: prev, next: next) do
+         {html, %{} = meta} <- Markdown.to_html(rest, proj, prev: prev, next: next) do
       title = Map.get(meta, :title, "☆ ☆ ☆")
+      card = Map.get(meta, :card)
 
       tags =
         file.src
@@ -65,6 +66,7 @@ defmodule Serum.Build.FileProcessor.Post do
         |> Map.put_new(:title, title)
         |> Map.update(:tags, tags, &Enum.uniq(tags ++ &1))
 
+      extras = if is_nil(card), do: extras, else: Map.put(extras, :card, card)
       post = Post.new(file2.src, {header, extras}, html, proj)
 
       Plugin.processed_post(post)

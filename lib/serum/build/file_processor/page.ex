@@ -60,7 +60,8 @@ defmodule Serum.Build.FileProcessor.Page do
 
   @spec process_pages([Page.t()], Project.t()) :: Result.t([Page.t()])
   def process_pages(pages, proj) do
-    pages
+    [nil | pages]
+    |> Enum.chunk_every(3, 1, [nil])
     |> Task.async_stream(&process_page(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
@@ -70,19 +71,19 @@ defmodule Serum.Build.FileProcessor.Page do
     end
   end
 
-  @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
-  defp process_page(page, proj) do
-    case do_process_page(page, proj) do
+  @spec process_page([Page.t()], Project.t()) :: Result.t(Page.t())
+  defp process_page([prev, page, next], proj) do
+    case do_process_page(page, proj, prev: prev, next: next) do
       {:ok, page} -> Plugin.processed_page(page)
       {:error, _} = error -> error
     end
   end
 
-  @spec do_process_page(Page.t(), Project.t()) :: Result.t(Page.t())
-  defp do_process_page(page, proj)
+  @spec do_process_page(Page.t(), Project.t(), keyword()) :: Result.t(Page.t())
+  defp do_process_page(page, proj, options)
 
-  defp do_process_page(%Page{type: type} = page, proj) when type in [".md", ""] do
-    {data, meta} = Markdown.to_html(page.data, proj)
+  defp do_process_page(%Page{type: type} = page, proj, options) when type in [".md", ""] do
+    {data, meta} = Markdown.to_html(page.data, proj, options)
 
     tags =
       page.file
@@ -99,15 +100,16 @@ defmodule Serum.Build.FileProcessor.Page do
       page.extras
       |> Map.put_new("title", title)
       |> Map.put("tags", tags)
+      |> Map.put(:supplemental, options)
 
     {:ok, %Page{page | data: data, extras: extras, title: title, label: label}}
   end
 
-  defp do_process_page(%Page{type: ".html"} = page, _proj) do
+  defp do_process_page(%Page{type: ".html"} = page, _proj, _options) do
     {:ok, page}
   end
 
-  defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
+  defp do_process_page(%Page{type: ".html.eex"} = page, _proj, _options) do
     with {:ok, ast} <- TC.compile_string(page.data),
          template = Template.new(ast, page.file, :template, page.file),
          {:ok, new_template} <- TC.Include.expand(template),

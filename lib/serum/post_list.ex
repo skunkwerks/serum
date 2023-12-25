@@ -68,15 +68,30 @@ defmodule Serum.PostList do
 
     lists =
       Enum.map(paginated_posts, fn {posts, page} ->
+        supplemental =
+          if page == 1,
+            do: [],
+            else: [prev: Path.join([proj.base_url, list_dir, format_name(page - 1)])]
+
+        supplemental =
+          if page == max_page,
+            do: supplemental,
+            else:
+              Keyword.put(
+                supplemental,
+                :next,
+                Path.join([proj.base_url, list_dir, format_name(page + 1)])
+              )
+
         %__MODULE__{
           tag: tag,
           current_page: page,
           max_page: max_page,
           title: list_title(tag, proj),
           posts: posts,
-          url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
-          output: Path.join([proj.dest, list_dir, "page-#{page}.html"]),
-          extras: %{}
+          url: Path.join([proj.base_url, list_dir, format_name(page)]),
+          output: Path.join([proj.dest, list_dir, format_name(page)]),
+          extras: %{supplemental: supplemental}
         }
       end)
 
@@ -92,6 +107,10 @@ defmodule Serum.PostList do
     |> Enum.map(&Plugin.processed_list/1)
     |> Result.aggregate_values(:generate_lists)
   end
+
+  @spec format_name(pos_integer(), String.t(), String.t()) :: String.t()
+  defp format_name(number, prefix \\ "page-", suffix \\ ".html"),
+    do: "#{prefix}#{number}#{suffix}"
 
   @spec compact(t()) :: map()
   def compact(%__MODULE__{} = list) do

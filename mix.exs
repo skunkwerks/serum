@@ -1,7 +1,7 @@
 defmodule Serum.Mixfile do
   use Mix.Project
 
-  @serum_version "1.6.4"
+  @serum_version "1.6.5"
 
   def project do
     [

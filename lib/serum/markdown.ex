@@ -8,6 +8,7 @@ defmodule Serum.Markdown do
   alias Serum.Project
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
+  @re_media_short ~r/\A(?:%|%25)media:(?<url>[^"]*)\z/
   @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
   @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
   @re_tag ~r/(?<type>href|src)="(?:%|%25)tag:(?<url>[^"]*)"/
@@ -31,6 +32,15 @@ defmodule Serum.Markdown do
              {:a, %{"data-tag": tag}, _} = elem, acc ->
                {elem, Map.update(acc, :tags, [tag], &[tag | &1])}
 
+             {:img, %{src: src}, _} = elem, acc
+             when not is_map_key(acc, :card) and is_binary(src) ->
+               card =
+                 Regex.replace(@re_media_short, src, fn _, url ->
+                   Path.join([proj.base_url, "media", url])
+                 end)
+
+               {elem, Map.put(acc, :card, card)}
+
              elem, acc ->
                {elem, acc}
            end}
@@ -40,7 +50,7 @@ defmodule Serum.Markdown do
   end
 
   @spec prev_next_links(
-          {:arrows, [{:previous, String.t()} | {:next, String.t()}]}
+          {:arrows, [{:prev, String.t()} | {:next, String.t()}]}
           | (nil | String.t(), nil | String.t() -> String.t())
         ) :: String.t()
   defp prev_next_links({:arrows, prev_next, proj}) do
@@ -48,17 +58,17 @@ defmodule Serum.Markdown do
       for {k, v} <- prev_next, do: {k, safe_dest(v, proj.pretty_urls)}
 
     {opening, closing} = {"\n\n---\n⇒{{class:prev_next}}", "⇐\n"}
-    arrows = [previous: "⮈", next: "⮊"]
+    arrows = [prev: "⮈", next: "⮊"]
     splitter = "  ￤  "
 
     wrapper =
       &if(is_nil(prev_next[&1]), do: arrows[&1], else: "[#{arrows[&1]}](#{prev_next[&1]})")
 
-    Enum.join([opening, wrapper.(:previous), splitter, wrapper.(:next), closing])
+    Enum.join([opening, wrapper.(:prev), splitter, wrapper.(:next), closing])
   end
 
   defp prev_next_links(fun, prev_next) when is_function(fun, 2),
-    do: fun.(prev_next[:previous], prev_next[:next])
+    do: fun.(prev_next[:prev], prev_next[:next])
 
   defp safe_dest(nil, _), do: nil
   defp safe_dest(s, _) when is_binary(s), do: s

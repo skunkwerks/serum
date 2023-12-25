@@ -63,6 +63,16 @@ defmodule Serum.Build do
     end
   end
 
+  @spec fix_url(binary() | Serum.Page.t() | Serum.File.t()) :: String.t()
+  def fix_url(url) when is_binary(url), do: url
+  def fix_url(%Serum.Page{url: url}) when is_binary(url), do: url
+  def fix_url(%Serum.File{dest: dest}) when is_binary(dest), do: dest
+
+  def fix_url(%Serum.File{src: src}) when is_binary(src),
+    do: src |> Path.split() |> then(&[List.first(&1), List.last(&1)]) |> Path.join()
+
+  def fix_url(_), do: nil
+
   @spec load_plugins(Project.t()) :: Result.t(Project.t())
   defp load_plugins(proj) do
     with {:ok, plugins} <- Plugin.load_plugins(proj.plugins),

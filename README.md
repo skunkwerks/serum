@@ -47,5 +47,6 @@ more guides and documentations.
 ## LICENSE
 
 Copyright (c) 2022 Eunbin Jeong (Dalgona.) <project-serum@dalgona.dev>
+Copyright (c) 2023 Aleksei Matiushkin <am@ambment.cat>
 
 MIT License. Read `LICENSE` for the full text.
