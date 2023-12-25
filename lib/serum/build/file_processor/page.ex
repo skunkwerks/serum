@@ -62,7 +62,7 @@ defmodule Serum.Build.FileProcessor.Page do
   def process_pages(pages, proj) do
     [nil | pages]
     |> Enum.chunk_every(3, 1, [nil])
-    |> Task.async_stream(&process_page(&1, proj))
+    |> Task.async_stream(&process_page(&1, proj), timeout: :infinity)
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
