@@ -49,22 +49,21 @@ defmodule Serum.Markdown do
     {process_links(html, proj), Map.put(meta, :prev_next, options)}
   end
 
+  @arrows Application.compile_env(:serum_md, :arrows, prev: "⮜", next: "⮞")
+  @splitter Application.compile_env(:serum_md, :splitter, "  ￤  ")
+
   @spec prev_next_links(
           {:arrows, [{:prev, String.t()} | {:next, String.t()}]}
           | (nil | String.t(), nil | String.t() -> String.t())
         ) :: String.t()
   defp prev_next_links({:arrows, prev_next, proj}) do
-    prev_next =
-      for {k, v} <- prev_next, do: {k, safe_dest(v, proj.pretty_urls)}
-
+    prev_next = for {k, v} <- prev_next, do: {k, safe_dest(v, proj.pretty_urls)}
     {opening, closing} = {"\n\n---\n⇒{{class:prev_next}}", "⇐\n"}
-    arrows = [prev: "⮈", next: "⮊"]
-    splitter = "  ￤  "
 
     wrapper =
-      &if(is_nil(prev_next[&1]), do: arrows[&1], else: "[#{arrows[&1]}](#{prev_next[&1]})")
+      &if(is_nil(prev_next[&1]), do: @arrows[&1], else: "[#{@arrows[&1]}](#{prev_next[&1]})")
 
-    Enum.join([opening, wrapper.(:prev), splitter, wrapper.(:next), closing])
+    Enum.join([opening, wrapper.(:prev), @splitter, wrapper.(:next), closing])
   end
 
   defp prev_next_links(fun, prev_next) when is_function(fun, 2),
